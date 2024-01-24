@@ -15,7 +15,7 @@ type MysqlQueryPiece struct {
 	VisitUser    *string `json:"user"`
 	VisitDB      *string `json:"db"`
 	QuerySQL     *string `json:"sql"`
-	CostTimeInMS int64   `json:"cms"`
+	CostTimeInMS int64   `json:"cus"`
 }
 
 func (mqp *MysqlQueryPiece) String() (*string) {
