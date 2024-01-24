@@ -12,7 +12,7 @@ type PooledMysqlQueryPiece struct {
 
 func NewPooledMysqlQueryPiece(
 	sessionID, clientIP, visitUser, visitDB, serverIP *string,
-	clientPort, serverPort int, throwPacketRate float64, stmtBeginTimeNano int64) (
+	clientPort, serverPort int, throwPacketRate float64, stmtBeginTimeNano int64, sqlType string) (
 	pmqp *PooledMysqlQueryPiece) {
 	pmqp = mqpp.Dequeue()
 
@@ -28,6 +28,7 @@ func NewPooledMysqlQueryPiece(
 	pmqp.EventTime = stmtBeginTimeNano / millSecondUnit
 	pmqp.CostTimeInMS = 1000*(time.Now().UnixNano() - stmtBeginTimeNano) / millSecondUnit
 	pmqp.recoverPool = mqpp
+        pmqp.SqlType = sqlType  // 设置 sqlType
 
 	return
 }

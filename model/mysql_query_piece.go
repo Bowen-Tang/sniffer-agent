@@ -16,6 +16,7 @@ type MysqlQueryPiece struct {
 	VisitDB      *string `json:"db"`
 	QuerySQL     *string `json:"sql"`
 	CostTimeInMS int64   `json:"cus"`
+        SqlType string `json:"sqlType"`  // 新增字段
 }
 
 func (mqp *MysqlQueryPiece) String() (*string) {

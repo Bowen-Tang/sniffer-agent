@@ -19,6 +19,7 @@ type MysqlSession struct {
 	clientPort        int
 	serverIP          *string
 	serverPort        int
+        sqlType string  // 新增字段
 	stmtBeginTimeNano int64
 	// packageOffset            int64
 	beginSeqID               int64
@@ -237,6 +238,7 @@ func (ms *MysqlSession) GenerateQueryPiece() (qp model.QueryPiece) {
 	var mqp *model.PooledMysqlQueryPiece
 	var querySQLInBytes []byte
 	if IsAuth(ms.cachedStmtBytes[0]) {
+//                fmt.Printf("ms.cachedStmtBytes: %v\n", ms.cachedStmtBytes)
 		userName, dbName, err := parseAuthInfo(ms.cachedStmtBytes)
 		if err != nil {
 			log.Errorf("parse auth info failed <-- %s", err.Error())
@@ -255,18 +257,21 @@ func (ms *MysqlSession) GenerateQueryPiece() (qp model.QueryPiece) {
 			mqp.QuerySQL = &useSQL
 			// update session database
 			ms.visitDB = &newDBName
+                        ms.sqlType = "Query"
 
 		case ComDropDB:
 			dbName := string(ms.cachedStmtBytes[1:])
 			dropSQL := fmt.Sprintf("drop database %s", dbName)
 			mqp = ms.composeQueryPiece()
 			mqp.QuerySQL = &dropSQL
+                        ms.sqlType = "Query"
 
 		case ComCreateDB, ComQuery:
 			mqp = ms.composeQueryPiece()
 			querySQLInBytes = ms.cachedStmtBytes[1:]
 			querySQL := hack.String(querySQLInBytes)
 			mqp.QuerySQL = &querySQL
+                        ms.sqlType = "Query"
 
 		case ComStmtPrepare:
 			mqp = ms.composeQueryPiece()
@@ -276,6 +281,7 @@ func (ms *MysqlSession) GenerateQueryPiece() (qp model.QueryPiece) {
 			mqp.QuerySQL = &querySQL
 			ms.cachedPrepareStmt[ms.prepareInfo.prepareStmtID] = querySQLInBytes
 			log.Infof("prepare statement %s, get id:%d", querySQL, ms.prepareInfo.prepareStmtID)
+                        ms.sqlType = "Stmt"
 
 		case ComStmtExecute:
 			prepareStmtID := bytesToInt(ms.cachedStmtBytes[1:5])
@@ -287,6 +293,7 @@ func (ms *MysqlSession) GenerateQueryPiece() (qp model.QueryPiece) {
 			}
 			querySQL := hack.String(querySQLInBytes)
 			mqp.QuerySQL = &querySQL
+                        ms.sqlType = "Stmt"
 
 			// log.Debugf("execute prepare statement:%d", prepareStmtID)
 
@@ -294,6 +301,7 @@ func (ms *MysqlSession) GenerateQueryPiece() (qp model.QueryPiece) {
 			prepareStmtID := bytesToInt(ms.cachedStmtBytes[1:5])
 			delete(ms.cachedPrepareStmt, prepareStmtID)
 			log.Infof("remove prepare statement:%d", prepareStmtID)
+                        ms.sqlType = "Stmt"
 
 		default:
 			return
@@ -339,5 +347,5 @@ func (ms *MysqlSession) composeQueryPiece() (mqp *model.PooledMysqlQueryPiece) {
 	clientPort := ms.clientPort
 	return model.NewPooledMysqlQueryPiece(
 		ms.connectionID, clientIP, ms.visitUser, ms.visitDB, ms.serverIP,
-		clientPort, ms.serverPort, communicator.GetMysqlCapturePacketRate(), ms.stmtBeginTimeNano)
+		clientPort, ms.serverPort, communicator.GetMysqlCapturePacketRate(), ms.stmtBeginTimeNano,ms.sqlType)
 }

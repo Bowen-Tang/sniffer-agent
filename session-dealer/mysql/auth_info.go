@@ -1,5 +1,9 @@
 package mysql
 
+//import (
+//	"fmt"
+//)
+
 // parseAuthInfo parse username, dbname from mysql client auth info
 func parseAuthInfo(data []byte) (userName, dbName string, err error) {
 	var resp handshakeResponse41
@@ -8,6 +12,7 @@ func parseAuthInfo(data []byte) (userName, dbName string, err error) {
 		return
 	}
 
+//        fmt.Printf("cachedStmtBytes: %v\n", data)
 	// Read the remaining part of the packet.
 	if err = parseHandshakeResponseBody(&resp, data, pos); err != nil {
 		return
