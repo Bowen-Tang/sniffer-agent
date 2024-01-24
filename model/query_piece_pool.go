@@ -26,7 +26,7 @@ func NewPooledMysqlQueryPiece(
 	pmqp.SyncSend = false
 	pmqp.CapturePacketRate = throwPacketRate
 	pmqp.EventTime = stmtBeginTimeNano / millSecondUnit
-	pmqp.CostTimeInMS = (time.Now().UnixNano() - stmtBeginTimeNano) / millSecondUnit
+	pmqp.CostTimeInMS = 1000*(time.Now().UnixNano() - stmtBeginTimeNano) / millSecondUnit
 	pmqp.recoverPool = mqpp
 
 	return
